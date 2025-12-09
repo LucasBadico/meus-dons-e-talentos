@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Indicador de Dons Espirituais</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #111827;
+      background-color: #f3f4f6;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: #e5e7eb;
+    }
+
+    .app-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      margin: 12px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+      padding: 20px 18px 24px;
+      box-sizing: border-box;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .field {
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #4b5563;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+    }
+
+    .question-text {
+      padding: 12px 10px;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+    }
+
+    .division-label {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .value-options {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .value-options label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #4b5563;
+    }
+
+    .value-options input[type="radio"] {
+      margin-bottom: 4px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .helper-text {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .buttons-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.1s ease;
+    }
+
+    button.primary {
+      background: #2563eb;
+      color: white;
+      flex: 1;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.4);
+    }
+
+    button.primary:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+      flex: 0.8;
+    }
+
+    button.secondary:active {
+      transform: translateY(1px);
+    }
+
+    button[disabled] {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2563eb, #6366f1);
+      transition: width 0.2s ease;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      padding: 6px;
+      text-align: left;
+    }
+
+    .summary-table th {
+      border-bottom: 1px solid #e5e7eb;
+      font-weight: 600;
+      color: #4b5563;
+    }
+
+    .summary-table tr:nth-child(even) td {
+      background: #f9fafb;
+    }
+
+    .bar-row {
+      margin: 6px 0;
+    }
+
+    .bar-label {
+      font-size: 0.85rem;
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
+      color: #4b5563;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .bar-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #22c55e);
+      transition: width 0.3s ease;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: #eff6ff;
+      color: #1d4ed8;
+      margin-right: 6px;
+      margin-top: 4px;
+    }
+
+    .top-gifts {
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .small {
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .error-text {
+      color: #b91c1c;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="app"></div>
+
+<script>
+  // ===== CONFIGURAÇÃO DA URL DE ENVIO =====
+  // Troque pela URL real da sua API:
+  const SUBMIT_URL = "https://sua-api-aqui.com/respostas";
+
+  // ===== DADOS DO QUESTIONÁRIO =====
+
+  const gifts = [
+    { letter: "A", name: "Misericórdia" },
+    { letter: "B", name: "Contribuição" },
+    { letter: "C", name: "Evangelista" },
+    { letter: "D", name: "Pastor/Mestre" },
+    { letter: "E", name: "Exortação" },
+    { letter: "F", name: "Governo" },
+    { letter: "G", name: "Ensino" },
+    { letter: "H", name: "Servir" },
+    { letter: "I", name: "Fé" }
+  ];
+
+  const divisions = [
+    {
+      id: 1,
+      items: [
+        { letter: "A", text: "Pessoas me procuram quando alguém está sofrendo ou com dor." },
+        { letter: "B", text: "Fico feliz que DEUS me deu condições financeiras para ajudar outros que têm necessidades." },
+        { letter: "C", text: "Eu encaro como natural em minhas conversas com descrentes falar-lhes das coisas espirituais." },
+        { letter: "D", text: "Quando as pessoas me conhecem, compartilham comigo como cresceram espiritualmente como resultado da minha ajuda." },
+        { letter: "E", text: "Minhas conversas com pessoas os ajudam a tomarem passos de vitória e obediência para com a Palavra de DEUS." },
+        { letter: "F", text: "Quando faço parte de um grupo que falta direção, eu acabo organizando-o." },
+        { letter: "G", text: "Eu noto que as pessoas aceitam as verdades que compartilho e colocam em prática em suas vidas." },
+        { letter: "H", text: "Eu fico alegre em fazer um trabalho minucioso para que outros sejam bem sucedidos ao exercerem seus dons." },
+        { letter: "I", text: "Outros vêem em mim uma visão quanto a alcançar projetos futuros além do normal." }
+      ]
+    },
+    {
+      id: 2,
+      items: [
+        { letter: "A", text: "Eu percebo que pessoas estão sofrendo antes que os outros percebam." },
+        { letter: "B", text: "Tenho escolhido rebaixar o meu padrão de vida para poder contribuir para a obra de DEUS." },
+        { letter: "C", text: "Cultivo continuamente relacionamentos com descrentes para poder compartilhar a pessoa de CRISTO com eles." },
+        { letter: "D", text: "Sinto grande alegria ao ver pessoas progredindo em sua capacidade para trabalhar para o Senhor." },
+        { letter: "E", text: "Pessoas desanimadas encontram motivação quando converso com elas." },
+        { letter: "F", text: "Tenho capacidade de ver a amplitude de um projeto enquanto outros vêem somente os passos individuais." },
+        { letter: "G", text: "Muitas vezes pessoas compartilham comigo como os tenho ajudado a encontrar as verdades Bíblicas de uma maneira relevante." },
+        { letter: "H", text: "Pessoas me dizem como sou útil fazendo coisas ocultas (bastidores) para que elas possam atuar de maneira aparente." },
+        { letter: "I", text: "Tenho confiado no Senhor em coisas que outros pensam que é tolice, e Ele tem sido Fiel." }
+      ]
+    },
+    {
+      id: 3,
+      items: [
+        { letter: "A", text: "Tenho observado a fé crescer em outros porque DEUS tem me capacitado a aliviá-los de uma dor em suas vidas." },
+        { letter: "B", text: "Não fico perturbado se outros não estão dispostos a contribuir generosamente." },
+        { letter: "C", text: "Tenho levado pessoas a CRISTO quando outros crentes sentem repulsa quanto ao seu estilo de vida." },
+        { letter: "D", text: "Vejo que pessoas estão desejosas de seguir a minha liderança sem ter que empurrá-las." },
+        { letter: "E", text: "Pessoas que estão confusas muitas vezes percebem que eu consigo esclarecer o pensamento delas." },
+        { letter: "F", text: "Posso ver a obra do Senhor feita com maior eficiência quando me empenho para organizar pessoas e recursos." },
+        { letter: "G", text: "Pessoas têm tido a capacidade de entender a aplicação da Palavra quando eu ensino." },
+        { letter: "H", text: "Eu vejo e ajudo outros a verem o sentido espiritual nas tarefas rotineiras que fazemos." },
+        { letter: "I", text: "Pessoas têm encontrado através de mim a coragem para tomarem passos significantes quando outros previram o fracasso." }
+      ]
+    },
+    {
+      id: 4,
+      items: [
+        { letter: "A", text: "Outros dizem que sentem o conforto de DEUS através de mim." },
+        { letter: "B", text: "Experimento grande alegria em ver outros se regozijarem quando não têm a menor ideia que eu supri a sua necessidade." },
+        { letter: "C", text: "Minha lista de oração sempre inclui nomes de pessoas descrentes." },
+        { letter: "D", text: "Muitas vezes consigo ajudar pessoas a evitarem problemas antes delas perceberem que era um problema." },
+        { letter: "E", text: "Pessoas acham fácil conversar comigo a respeito de suas lutas." },
+        { letter: "F", text: "Eu tenho a tendência de ser impulsionado por alvos e propósitos." },
+        { letter: "G", text: "Tenho visto pessoas compartilhando como têm crescido por causa de verdades que tenho explicado em conversas informais." },
+        { letter: "H", text: "Eu vibro quando as pessoas são abençoadas por causa das tarefas ocasionais que faço por elas." },
+        { letter: "I", text: "Tenho grande paz em meio a tempos difíceis." }
+      ]
+    },
+    {
+      id: 5,
+      items: [
+        { letter: "A", text: "Eu me encontro ajudando pessoas as quais outros sentem que são indignas." },
+        { letter: "B", text: "Sinto-me motivado quando recebo apelo para ajudar de forma financeira." },
+        { letter: "C", text: "Tenho sido usado para ajudar outros crentes a aprenderem como compartilhar a sua fé." },
+        { letter: "D", text: "Quando dou direção a um grupo, eles respondem com confiante gratidão." },
+        { letter: "E", text: "O Senhor me capacita a ajudar pessoas a verem passos simples em meio a situações complexas." },
+        { letter: "F", text: "Eu vejo que tenho autoridade como responsabilidade mais do que como posição." },
+        { letter: "G", text: "Tenho forte desejo de aprender as verdades Bíblicas." },
+        { letter: "H", text: "Muitas vezes vejo detalhes que posso fazer que impulsionam um ministério de grande impacto." },
+        { letter: "I", text: "Quando tenho certeza da direção de DEUS, eu avanço apesar de uma aparente falta de sucesso." }
+      ]
+    },
+    {
+      id: 6,
+      items: [
+        { letter: "A", text: "Sou mais pronto a confortar alguém do que repreendê-lo." },
+        { letter: "B", text: "Fico admirado no que DEUS tem feito com contribuições que tenho dado além do dízimo." },
+        { letter: "C", text: "Posso apontar muitos indivíduos que levei a CRISTO que estão firmes no Senhor." },
+        { letter: "D", text: "Quando ensino um grupo, tenho capacidade para ministrar individualmente e coletivamente e levá-los à ação." },
+        { letter: "E", text: "Eu percebo que pessoas são motivadas à obediência à Palavra quando ministro a elas." },
+        { letter: "F", text: "Tenho capacidade para ajudar pessoas a focalizar suas necessidades e frustrações em alvos e ministérios." },
+        { letter: "G", text: "Quando compartilho verdades Bíblicas, pessoas tornam-se interessadas e buscam praticá-las." },
+        { letter: "H", text: "O Senhor tem colocado em mim a prontidão e desejo para fazer o que for necessário para ajudar outros." },
+        { letter: "I", text: "Devido ao fato que tenho visto o potencial em ideias e pessoas, outros têm confiança em DEUS para ir em frente." }
+      ]
+    },
+    {
+      id: 7,
+      items: [
+        { letter: "A", text: "Muitas vezes enquanto ajudo outros, fico admirado como DEUS trabalha em suas vidas." },
+        { letter: "B", text: "Fico preocupado em como será usado o dinheiro que DEUS tem me induzido a contribuir além do dízimo." },
+        { letter: "C", text: "Quando alguém ora comigo para receber a CRISTO como Salvador, percebo que ficam ansiosos para saber como andar com Ele." },
+        { letter: "D", text: "Ao dirigir um grupo, vejo que a persistência em oração é o meu maior recurso." },
+        { letter: "E", text: "Muitas vezes pessoas comentam quão práticas são as minhas sugestões." },
+        { letter: "F", text: "Quando direciono para mudanças, pessoas me seguem confiadamente." },
+        { letter: "G", text: "Eu tenho prazer em explicar as Escrituras de uma maneira que pessoas a acham prática e desejam obedecer." },
+        { letter: "H", text: "Sinto maior realização quando ajudo outros a serem bem sucedidos no ministério que DEUS deseja que façam." },
+        { letter: "I", text: "Muitas vezes pessoas me procuram para apoiá-las em oração." }
+      ]
+    },
+    {
+      id: 8,
+      items: [
+        { letter: "A", text: "Sou atraído a situações onde acabo me desgastando para ajudar pessoas que estão sofrendo." },
+        { letter: "B", text: "Ao fazer compras, eu considero o que vai significar na minha possibilidade para contribuir ao Senhor." },
+        { letter: "C", text: "Fico preocupado quando vejo outros crentes que não têm o hábito de compartilhar sua fé." },
+        { letter: "D", text: "Pessoas me veem como alguém que pode ajudar um grupo a resolver um problema." },
+        { letter: "E", text: "Pessoas são capazes de sentir o meu interesse para com elas quando necessito repreendê-las." },
+        { letter: "F", text: "Sou capaz de organizar pessoas para que tenham liberdade em usar os seus dons e habilidades." },
+        { letter: "G", text: "Sou capaz de ajudar pessoas a verem um versículo à luz de toda Escritura." },
+        { letter: "H", text: "Prefiro completar um trabalho a ser responsável para organizar outros a fazerem a tarefa." },
+        { letter: "I", text: "Permaneço encorajado ainda quando as coisas parecem impossíveis." }
+      ]
+    },
+    {
+      id: 9,
+      items: [
+        { letter: "A", text: "Quando ajudo pessoas que estão sofrendo, eu vejo tanto a minha fé como a delas fortalecidas." },
+        { letter: "B", text: "Às vezes eu fico pensando por que as pessoas não são tão abertas para me deixar saber como posso contribuir para seu ministério." },
+        { letter: "C", text: "Fico admirado como o Espírito Santo atrai pessoas para a salvação através do meu testemunho." },
+        { letter: "D", text: "O Senhor me capacita a ver a derrota como estímulo em busca da vitória, mesmo quando não há alívio em vista." },
+        { letter: "E", text: "Tenho sido usado por DEUS para ajudar pessoas a verem suas responsabilidades na quebra de relacionamentos." },
+        { letter: "F", text: "Quando lidero, eu posso facilmente ajudar o grupo a incorporar uma variedade de ideias de várias pessoas." },
+        { letter: "G", text: "Muitas vezes pessoas são capazes de entender a DEUS melhor por causa da perspectiva que eu trago das Escrituras." },
+        { letter: "H", text: "Eu prontamente vejo tarefas a serem feitas e as faço." },
+        { letter: "I", text: "Muitas vezes tenho me desempenhado numa tarefa não sabendo de onde vinha o meu sustento." }
+      ]
+    },
+    {
+      id: 10,
+      items: [
+        { letter: "A", text: "Me encontro gastando tempo com pessoas que estão doentes e sofrendo." },
+        { letter: "B", text: "Sou encorajado em como DEUS me capacita para contribuir além do dízimo, por causa daquilo que tenho visto Ele realizar através da contribuição." },
+        { letter: "C", text: "Eu posso testemunhar sobre CRISTO para amigos íntimos como também estranhos." },
+        { letter: "D", text: "Um crente desviado me vê mais como uma ambulância do que como um juiz." },
+        { letter: "E", text: "Tenho visto pessoas que estavam se desviando de DEUS restauradas através do meu conforto." },
+        { letter: "F", text: "Tenho tido a capacidade para ajudar pessoas a esclarecerem a sua visão para o ministério e revertê-lo em produtividade." },
+        { letter: "G", text: "Meu ensino tem dado às pessoas mais confiança nas suas habilidades para compreender as Escrituras no seu próprio estudo." },
+        { letter: "H", text: "Muitas vezes pessoas comentam como sou alegre em fazer as tarefas rotineiras ou pequenas." },
+        { letter: "I", text: "Por causa daquilo que tenho visto através da oração, gasto uma parte significante da minha tarefa em oração." }
+      ]
+    },
+    {
+      id: 11,
+      items: [
+        { letter: "A", text: "É muito fácil eu me identificar com a situação de uma pessoa que está sofrendo." },
+        { letter: "B", text: "Não é incomum eu dar algo que ainda necessito para alguém, se eu vejo que este alguém necessita mais do que eu." },
+        { letter: "C", text: "DEUS tem colocado em mim um forte desejo para compartilhar o evangelho com aqueles com quem me associo." },
+        { letter: "D", text: "Não me preocupo tanto com erros de programação como o impacto na vida dos participantes." },
+        { letter: "E", text: "Pessoas nas quais tenho repreendido voltam procurando mais ajuda." },
+        { letter: "F", text: "Eu percebo que pessoas a quem delego trabalho têm a capacidade de realizar mais do que eu poderia fazer." },
+        { letter: "G", text: "Depois que tenho ensinado pessoas por algum tempo, parece que elas têm mais vitória em suas vidas." },
+        { letter: "H", text: "Sou grato quando alguém me pede para fazer uma tarefa que os libera para fazer algo mais." },
+        { letter: "I", text: "A falta de progresso não me abala em relação à minha confiança em DEUS." }
+      ]
+    },
+    {
+      id: 12,
+      items: [
+        { letter: "A", text: "O Senhor me dá grande compaixão e motivação para confortar os que estão doentes e sofrendo." },
+        { letter: "B", text: "Ainda que não tenha tanto para dar como outros têm, eu vejo DEUS usando a minha contribuição de maneira fora do comum." },
+        { letter: "C", text: "Sou atraído por pessoas no meu grupo na Escola Dominical que se animam em compartilhar a sua fé." },
+        { letter: "D", text: "O Senhor me usa para liderar, ensinar e proteger meus irmãos em CRISTO produzindo crescimento espiritual e serviço." },
+        { letter: "E", text: "Tenho ajudado pessoas a praticar o Senhorio de CRISTO nas suas vidas." },
+        { letter: "F", text: "Sou capaz de iniciar ideias para o ministério quando outros estão desanimados ou inconscientes de uma necessidade." },
+        { letter: "G", text: "Pessoas apreciam a minha capacidade de organizar pensamentos descobertos na Palavra de DEUS." },
+        { letter: "H", text: "Outros são encorajados a servir pela maneira que veem a minha fidelidade em fazer as tarefas pequenas." },
+        { letter: "I", text: "Eu oro a respeito de coisas que outros apenas sonham." }
+      ]
+    }
+  ];
+
+  const totalQuestions = divisions.length * 9; // 108
+
+  // ===== ESTADO DO APP =====
+
+  let currentStep = -1; // -1 = tela de nome/email; 0..107 = perguntas; 108 = resumo
+  let participantName = "";
+  let participantEmail = "";
+  let isSending = false;
+
+  // Respostas: [divisão][item] = 0,1,2,3
+  const responses = Array.from({ length: divisions.length }, () =>
+    Array(9).fill(0)
+  );
+
+  const appRoot = document.getElementById("app");
+
+  // ===== FUNÇÕES DE VALIDAÇÃO / CÁLCULO =====
+
+  function setAnswer(divisionIndex, itemIndex, newVal) {
+    newVal = parseInt(newVal, 10);
+    if (isNaN(newVal)) newVal = 0;
+    const divisionResponses = responses[divisionIndex];
+    const oldVal = divisionResponses[itemIndex] || 0;
+    if (newVal === oldVal) return;
+
+    // Se está definindo um valor (1,2,3)
+    if (newVal !== 0) {
+      // a) Máximo 3 respostas não-zero por divisão
+      const nonZeroCount = divisionResponses.reduce((acc, v, idx) => {
+        if (idx === itemIndex) return acc;
+        return acc + (v > 0 ? 1 : 0);
+      }, 0);
+
+      if (nonZeroCount + 1 > 3) {
+        alert("Você só pode marcar até 3 declarações com valor 1, 2 ou 3 em cada divisão.");
+        return;
+      }
+
+      // b) Cada valor (1,2,3) só pode aparecer uma vez por divisão
+      const valueAlreadyUsed = divisionResponses.some((v, idx) =>
+        idx !== itemIndex && v === newVal
+      );
+      if (valueAlreadyUsed) {
+        alert("Em cada divisão, cada valor (1, 2 e 3) só pode ser usado uma vez.");
+        return;
+      }
+    }
+    // Se chegou até aqui, pode atualizar
+    divisionResponses[itemIndex] = newVal;
+  }
+
+  function computeTotals() {
+    const totalsByLetter = {
+      A: 0, B: 0, C: 0, D: 0, E: 0, F: 0, G: 0, H: 0, I: 0
+    };
+
+    divisions.forEach((div, di) => {
+      div.items.forEach((item, ii) => {
+        const val = responses[di][ii] || 0;
+        totalsByLetter[item.letter] += val;
+      });
+    });
+
+    return totalsByLetter;
+  }
+
+  // ===== RENDER =====
+
+  function render() {
+    appRoot.innerHTML = "";
+
+    if (currentStep === -1) {
+      renderIntroScreen();
+    } else if (currentStep >= 0 && currentStep < totalQuestions) {
+      renderQuestionScreen();
+    } else {
+      renderSummaryScreen();
+    }
+  }
+
+  function renderIntroScreen() {
+    const container = document.createElement("div");
+
+    const title = document.createElement("h1");
+    title.textContent = "Indicador de Dons Espirituais";
+    container.appendChild(title);
+
+    const description = document.createElement("p");
+    description.textContent =
+      "Este questionário é um auxílio para identificar quais dons espirituais podem estar mais evidentes na sua vida hoje. Não é uma palavra final, mas um passo para te direcionar.";
+    container.appendChild(description);
+
+    const small = document.createElement("p");
+    small.className = "small";
+    small.textContent =
+      "Você verá 12 blocos de afirmações (no total 108 frases). Leia cada frase com calma e indique quanto ela representa a sua realidade.";
+    container.appendChild(small);
+
+    const nameField = document.createElement("div");
+    nameField.className = "field";
+    const nameLabel = document.createElement("label");
+    nameLabel.textContent = "Nome completo";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.value = participantName;
+    nameInput.placeholder = "Seu nome";
+    nameInput.oninput = (e) => {
+      participantName = e.target.value;
+    };
+    nameField.appendChild(nameLabel);
+    nameField.appendChild(nameInput);
+    container.appendChild(nameField);
+
+    const emailField = document.createElement("div");
+    emailField.className = "field";
+    const emailLabel = document.createElement("label");
+    emailLabel.textContent = "E-mail";
+    const emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.value = participantEmail;
+    emailInput.placeholder = "seu-email@exemplo.com";
+    emailInput.oninput = (e) => {
+      participantEmail = e.target.value;
+    };
+    emailField.appendChild(emailLabel);
+    emailField.appendChild(emailInput);
+    container.appendChild(emailField);
+
+    const helper = document.createElement("p");
+    helper.className = "small";
+    helper.textContent =
+      "Usaremos seu nome e e-mail apenas para identificar seu resultado e, se desejar, registrar no sistema da igreja.";
+    container.appendChild(helper);
+
+    const buttons = document.createElement("div");
+    buttons.className = "buttons-row";
+
+    const startButton = document.createElement("button");
+    startButton.className = "primary";
+    startButton.textContent = "Começar";
+    startButton.onclick = () => {
+      if (!participantName.trim() || !participantEmail.trim()) {
+        alert("Por favor, preencha nome e e-mail para continuar.");
+        return;
+      }
+      currentStep = 0;
+      render();
+    };
+
+    buttons.appendChild(startButton);
+    container.appendChild(buttons);
+
+    appRoot.appendChild(container);
+  }
+
+  function renderQuestionScreen() {
+    const container = document.createElement("div");
+
+    const questionNumber = currentStep + 1;
+    const divisionIndex = Math.floor(currentStep / 9);
+    const itemIndex = currentStep % 9;
+    const division = divisions[divisionIndex];
+    const item = division.items[itemIndex];
+
+    const progress = document.createElement("div");
+    progress.className = "progress-bar";
+    const progressInner = document.createElement("div");
+    progressInner.className = "progress-bar-inner";
+    const percent = (questionNumber / totalQuestions) * 100;
+    progressInner.style.width = percent.toFixed(1) + "%";
+    progress.appendChild(progressInner);
+    container.appendChild(progress);
+
+    const progressText = document.createElement("div");
+    progressText.className = "progress-text";
+    const left = document.createElement("span");
+    left.textContent = `Pergunta ${questionNumber} de ${totalQuestions}`;
+    const right = document.createElement("span");
+    right.textContent = `Divisão ${division.id} / 12`;
+    progressText.appendChild(left);
+    progressText.appendChild(right);
+    container.appendChild(progressText);
+
+    const title = document.createElement("h2");
+    title.textContent = `Divisão ${division.id}`;
+    container.appendChild(title);
+
+    const divisionLabel = document.createElement("div");
+    divisionLabel.className = "division-label";
+    divisionLabel.textContent =
+      "Para cada divisão, você pode atribuir os valores 3, 2 e 1 a, no máximo, três frases.";
+    container.appendChild(divisionLabel);
+
+    const questionBox = document.createElement("div");
+    questionBox.className = "question-text";
+    questionBox.textContent = item.text;
+    container.appendChild(questionBox);
+
+    const helper = document.createElement("div");
+    helper.className = "helper-text";
+    helper.innerHTML =
+      "Marque o quanto esta frase representa a sua realidade:<br>" +
+      "<strong>3</strong> = descreve muito / é bem a minha cara<br>" +
+      "<strong>2</strong> = descreve bastante<br>" +
+      "<strong>1</strong> = descreve um pouco<br>" +
+      "<strong>0</strong> = não descreve a minha realidade<br>" +
+      "Em cada divisão, só é permitido usar uma vez o 3, uma vez o 2, uma vez o 1.";
+    container.appendChild(helper);
+
+    const valueRow = document.createElement("div");
+    valueRow.className = "value-options";
+
+    const currentVal = responses[divisionIndex][itemIndex] || 0;
+    [0, 1, 2, 3].forEach((val) => {
+      const optLabel = document.createElement("label");
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "value";
+      radio.value = String(val);
+      if (currentVal === val) radio.checked = true;
+      radio.onchange = (e) => {
+        setAnswer(divisionIndex, itemIndex, e.target.value);
+        // Força re-render para refletir eventuais bloqueios
+        render();
+      };
+      const text = document.createElement("span");
+      text.textContent = String(val);
+      optLabel.appendChild(radio);
+      optLabel.appendChild(text);
+      valueRow.appendChild(optLabel);
+    });
+
+    container.appendChild(valueRow);
+
+    const divisionInfo = document.createElement("div");
+    divisionInfo.className = "small";
+
+    const divResponses = responses[divisionIndex];
+    const usedValues = [1, 2, 3]
+      .map((v) => ({ v, used: divResponses.includes(v) }))
+      .filter((x) => x.used)
+      .map((x) => x.v)
+      .join(", ");
+    const nonZeroCount = divResponses.filter((v) => v > 0).length;
+
+    divisionInfo.textContent =
+      `Nesta divisão você já usou ${nonZeroCount} de 3 possíveis valores ` +
+      `(valores utilizados: ${usedValues || "nenhum ainda"}).`;
+    container.appendChild(divisionInfo);
+
+    const buttons = document.createElement("div");
+    buttons.className = "buttons-row";
+
+    const backButton = document.createElement("button");
+    backButton.className = "secondary";
+    backButton.textContent = "Voltar";
+    backButton.disabled = currentStep === 0;
+    backButton.onclick = () => {
+      if (currentStep > 0) {
+        currentStep -= 1;
+        render();
+      } else {
+        currentStep = -1;
+        render();
+      }
+    };
+    buttons.appendChild(backButton);
+
+    const nextButton = document.createElement("button");
+    nextButton.className = "primary";
+    nextButton.textContent = questionNumber === totalQuestions ? "Ver resultado" : "Próxima";
+    nextButton.onclick = () => {
+      if (currentStep < totalQuestions - 1) {
+        currentStep += 1;
+        render();
+      } else {
+        currentStep = totalQuestions; // resumo
+        render();
+      }
+    };
+    buttons.appendChild(nextButton);
+
+    container.appendChild(buttons);
+    appRoot.appendChild(container);
+  }
+
+  function renderSummaryScreen() {
+    const totals = computeTotals();
+    const sortedGifts = gifts
+      .slice()
+      .sort((a, b) => totals[b.letter] - totals[a.letter]);
+
+    const maxValue = Math.max(
+      1,
+      ...Object.values(totals)
+    );
+
+    const container = document.createElement("div");
+
+    const title = document.createElement("h2");
+    title.textContent = "Resultado Geral";
+    container.appendChild(title);
+
+    const intro = document.createElement("p");
+    intro.textContent =
+      "Este resultado mostra a soma dos pontos em cada dom, com base nas suas respostas. Os maiores valores indicam áreas onde, neste momento, seus dons podem estar mais evidentes.";
+    container.appendChild(intro);
+
+    const participantInfo = document.createElement("p");
+    participantInfo.className = "small";
+    participantInfo.textContent = `Participante: ${participantName} (${participantEmail})`;
+    container.appendChild(participantInfo);
+
+    const topGiftsBox = document.createElement("div");
+    topGiftsBox.className = "top-gifts";
+    const topTitle = document.createElement("strong");
+    topTitle.textContent = "Seus 3 dons mais fortes (pelo questionário):";
+    topGiftsBox.appendChild(topTitle);
+
+    sortedGifts.slice(0, 3).forEach((g, idx) => {
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = `${idx + 1}º: ${g.name} (coluna ${g.letter}) – ${totals[g.letter]} pts`;
+      topGiftsBox.appendChild(badge);
+    });
+
+    container.appendChild(topGiftsBox);
+
+    // Tabela
+    const table = document.createElement("table");
+    table.className = "summary-table";
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    ["Dom", "Letra", "Total"].forEach((h) => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    gifts.forEach((g) => {
+      const tr = document.createElement("tr");
+      const tdName = document.createElement("td");
+      tdName.textContent = g.name;
+      const tdLetter = document.createElement("td");
+      tdLetter.textContent = g.letter;
+      const tdTotal = document.createElement("td");
+      tdTotal.textContent = String(totals[g.letter]);
+      tr.appendChild(tdName);
+      tr.appendChild(tdLetter);
+      tr.appendChild(tdTotal);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    container.appendChild(table);
+
+    // "Gráfico" de barras
+    gifts.forEach((g) => {
+      const row = document.createElement("div");
+      row.className = "bar-row";
+
+      const label = document.createElement("div");
+      label.className = "bar-label";
+      const left = document.createElement("span");
+      left.textContent = `${g.name} (${g.letter})`;
+      const right = document.createElement("span");
+      right.textContent = `${totals[g.letter]} pts`;
+      label.appendChild(left);
+      label.appendChild(right);
+
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const inner = document.createElement("div");
+      inner.className = "bar-inner";
+      inner.style.width = ((totals[g.letter] / maxValue) * 100).toFixed(1) + "%";
+      bar.appendChild(inner);
+
+      row.appendChild(label);
+      row.appendChild(bar);
+      container.appendChild(row);
+    });
+
+    const note = document.createElement("p");
+    note.className = "small";
+    note.textContent =
+      "Lembre-se: este indicador é apenas um auxílio. Converse com seus líderes espirituais, ore e observe como DEUS tem usado sua vida na prática.";
+    container.appendChild(note);
+
+    const buttons = document.createElement("div");
+    buttons.className = "buttons-row";
+
+    const backButton = document.createElement("button");
+    backButton.className = "secondary";
+    backButton.textContent = "Voltar às perguntas";
+    backButton.onclick = () => {
+      currentStep = totalQuestions - 1;
+      render();
+    };
+    buttons.appendChild(backButton);
+
+    const sendButton = document.createElement("button");
+    sendButton.className = "primary";
+    sendButton.textContent = isSending ? "Enviando..." : "Enviar respostas";
+    sendButton.disabled = isSending;
+    sendButton.onclick = () => {
+      sendResults(totals, sortedGifts);
+    };
+    buttons.appendChild(sendButton);
+
+    container.appendChild(buttons);
+
+    appRoot.appendChild(container);
+  }
+
+  // ===== ENVIO PARA A API =====
+
+  function sendResults(totals, sortedGifts) {
+    if (!SUBMIT_URL || SUBMIT_URL.includes("sua-api-aqui")) {
+      alert("Defina a constante SUBMIT_URL com a URL real antes de enviar.");
+      return;
+    }
+
+    const answersPayload = [];
+    divisions.forEach((div, di) => {
+      div.items.forEach((item, ii) => {
+        answersPayload.push({
+          division: div.id,
+          questionLetter: item.letter,
+          questionText: item.text,
+          value: responses[di][ii] || 0
+        });
+      });
+    });
+
+    const totalsPayload = {};
+    gifts.forEach((g) => {
+      totalsPayload[g.letter] = {
+        gift: g.name,
+        total: totals[g.letter]
+      };
+    });
+
+    const topGiftsPayload = sortedGifts.slice(0, 3).map((g) => ({
+      letter: g.letter,
+      name: g.name,
+      total: totals[g.letter]
+    }));
+
+    const payload = {
+      name: participantName,
+      email: participantEmail,
+      totals: totalsPayload,
+      topGifts: topGiftsPayload,
+      answers: answersPayload
+    };
+
+    isSending = true;
+    render();
+
+    fetch(SUBMIT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Erro HTTP " + res.status);
+        return res.json().catch(() => null); // caso não venha JSON
+      })
+      .then(() => {
+        alert("Respostas enviadas com sucesso!");
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Ocorreu um erro ao enviar as respostas. Verifique a URL da API ou tente novamente.");
+      })
+      .finally(() => {
+        isSending = false;
+        render();
+      });
+  }
+
+  // Inicializa
+  render();
+</script>
+</body>
+</html>
