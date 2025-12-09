@@ -730,7 +730,11 @@
     selectedTab.divisionIndex === divisionIndex &&
     selectedTab.itemIndex === itemIndex;
 
-  // ===== BOX 1 – PROGRESSO =====
+  const totalDivisions = divisions.length;
+  const questionsInDivision = division.items.length; // normalmente 9
+  const divisionPercent = ((divisionIndex + 1) / totalDivisions) * 100;
+
+  // ===== BOX 1 – PROGRESSO (POR DIVISÃO) =====
   const progressBox = document.createElement("div");
   progressBox.className = "section-box section-progress";
 
@@ -738,17 +742,16 @@
   progress.className = "progress-bar";
   const progressInner = document.createElement("div");
   progressInner.className = "progress-bar-inner";
-  const percent = (questionNumber / totalQuestions) * 100;
-  progressInner.style.width = percent.toFixed(1) + "%";
+  progressInner.style.width = divisionPercent.toFixed(1) + "%";
   progress.appendChild(progressInner);
   progressBox.appendChild(progress);
 
   const progressText = document.createElement("div");
   progressText.className = "progress-text";
   const left = document.createElement("span");
-  left.textContent = `Pergunta ${questionNumber} de ${totalQuestions}`;
+  left.textContent = `Divisão ${division.id} de ${totalDivisions}`;
   const right = document.createElement("span");
-  right.textContent = `Divisão ${division.id} / 12`;
+  right.textContent = `Este bloco tem ${questionsInDivision} frases`;
   progressText.appendChild(left);
   progressText.appendChild(right);
   progressBox.appendChild(progressText);
@@ -760,7 +763,7 @@
   divisionBox.className = "section-box";
 
   const title = document.createElement("h2");
-  title.textContent = `Divisão ${division.id} de 12 – Bloco de Avaliação`;
+  title.textContent = `Divisão ${division.id} de ${totalDivisions} – Bloco de Avaliação`;
   divisionBox.appendChild(title);
 
   const divisionLabel = document.createElement("div");
@@ -768,6 +771,13 @@
   divisionLabel.textContent =
     "Para cada divisão, você pode atribuir os valores 3, 2 e 1 a, no máximo, três frases.";
   divisionBox.appendChild(divisionLabel);
+
+  // Info simples sobre quantidade de perguntas no bloco
+  const blockInfo = document.createElement("div");
+  blockInfo.className = "small";
+  blockInfo.textContent =
+    `Este bloco tem ${questionsInDivision} frases. Você verá uma por vez.`;
+  divisionBox.appendChild(blockInfo);
 
   const divResponses = responses[divisionIndex];
   const usedValues = [1, 2, 3]
@@ -939,7 +949,6 @@
   wrapper.appendChild(tabsColumn);
   appRoot.appendChild(wrapper);
 }
-
 
   function renderSummaryScreen() {
     const totals = computeTotals();
