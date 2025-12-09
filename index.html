@@ -353,6 +353,68 @@
   border-color: #4ade80;
 }
 
+/* ===== PROGRESSO POR DIVISÃO (SEGMENTOS CLICÁVEIS) ===== */
+
+.divisions-progress {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.division-segment {
+  min-width: 34px;
+  padding: 4px 4px 3px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  text-align: center;
+  font-size: 0.7rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+
+.division-segment:hover {
+  transform: translateY(-1px);
+}
+
+.division-segment.current {
+  border-color: #2563eb;
+  background: #dbeafe;
+}
+
+.division-segment.completed {
+  border-color: #16a34a;
+  background: #dcfce7;
+}
+
+.segment-squares {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.segment-square {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: #e5e7eb;
+}
+
+.segment-square.filled {
+  background: #22c55e;
+}
+
+.segment-label {
+  font-weight: 600;
+  color: #4b5563;
+  line-height: 1;
+}
+
+
   </style>
 </head>
 <body>
@@ -571,6 +633,28 @@
 
   const appRoot = document.getElementById("app");
 
+  function goToDivision(divisionIndex) {
+  const division = divisions[divisionIndex];
+  if (!division) return;
+
+  const divisionResponses = responses[divisionIndex];
+
+  // procura da última pergunta com valor > 0
+  let targetItemIndex = 0;
+  for (let i = divisionResponses.length - 1; i >= 0; i--) {
+    if (divisionResponses[i] > 0) {
+      targetItemIndex = i;
+      break;
+    }
+  }
+
+  const questionIndex = divisionIndex * division.items.length + targetItemIndex;
+
+  selectedTab = null;  // volta para fluxo normal de pergunta
+  currentStep = questionIndex;
+  render();
+}
+
   // ===== FUNÇÕES DE VALIDAÇÃO / CÁLCULO =====
 
   function setAnswer(divisionIndex, itemIndex, newVal) {
@@ -730,33 +814,78 @@
     selectedTab.divisionIndex === divisionIndex &&
     selectedTab.itemIndex === itemIndex;
 
-  const totalDivisions = divisions.length;
-  const questionsInDivision = division.items.length; // normalmente 9
-  const divisionPercent = ((divisionIndex + 1) / totalDivisions) * 100;
+  
 
   // ===== BOX 1 – PROGRESSO (POR DIVISÃO) =====
-  const progressBox = document.createElement("div");
-  progressBox.className = "section-box section-progress";
+  const totalDivisions = divisions.length;
+const questionsInDivision = division.items.length;
 
-  const progress = document.createElement("div");
-  progress.className = "progress-bar";
-  const progressInner = document.createElement("div");
-  progressInner.className = "progress-bar-inner";
-  progressInner.style.width = divisionPercent.toFixed(1) + "%";
-  progress.appendChild(progressInner);
-  progressBox.appendChild(progress);
+// ===== BOX 1 – PROGRESSO COM SEGMENTOS CLICÁVEIS =====
+const progressBox = document.createElement("div");
+progressBox.className = "section-box section-progress";
 
-  const progressText = document.createElement("div");
-  progressText.className = "progress-text";
-  const left = document.createElement("span");
-  left.textContent = `Divisão ${division.id} de ${totalDivisions}`;
-  const right = document.createElement("span");
-  right.textContent = `Este bloco tem ${questionsInDivision} frases`;
-  progressText.appendChild(left);
-  progressText.appendChild(right);
-  progressBox.appendChild(progressText);
+// conta quantas frases já foram pontuadas por divisão
+const divisionUsedCounts = divisions.map((div, idx) => {
+  return responses[idx].filter(v => v > 0).length;
+});
 
-  container.appendChild(progressBox);
+// Linha de segmentos
+const segmentsRow = document.createElement("div");
+segmentsRow.className = "divisions-progress";
+
+divisions.forEach((div, idx) => {
+  const seg = document.createElement("button");
+  seg.type = "button";
+  seg.className = "division-segment";
+
+  const usedCount = divisionUsedCounts[idx];
+
+  if (idx === divisionIndex) {
+    seg.classList.add("current");
+  } else if (usedCount === 3) {
+    seg.classList.add("completed");
+  }
+
+  const squares = document.createElement("div");
+  squares.className = "segment-squares";
+
+  for (let k = 1; k <= 3; k++) {
+    const sq = document.createElement("div");
+    sq.className = "segment-square";
+    if (usedCount >= k) sq.classList.add("filled");
+    squares.appendChild(sq);
+  }
+
+  const label = document.createElement("div");
+  label.className = "segment-label";
+  label.textContent = String(div.id);
+
+  seg.appendChild(squares);
+  seg.appendChild(label);
+
+  seg.onclick = () => goToDivision(idx);
+
+  segmentsRow.appendChild(seg);
+});
+
+progressBox.appendChild(segmentsRow);
+
+// Texto abaixo dos segmentos
+const progressText = document.createElement("div");
+progressText.className = "progress-text";
+
+const left = document.createElement("span");
+left.textContent = `Divisão ${division.id} de ${totalDivisions}`;
+
+const right = document.createElement("span");
+right.textContent = `Este bloco tem ${questionsInDivision} frases`;
+
+progressText.appendChild(left);
+progressText.appendChild(right);
+progressBox.appendChild(progressText);
+
+container.appendChild(progressBox);
+
 
   // ===== BOX 2 – TÍTULO / DIVISÃO =====
   const divisionBox = document.createElement("div");
