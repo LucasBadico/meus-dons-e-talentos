@@ -289,15 +289,16 @@
       z-index: 1;
     }
 
-    .tabs-column {
-      position: absolute;
-      left: -50px;
-      top: 70px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      z-index: 0;
-    }
+   .tabs-column {
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 0;
+}
 
     .tab-button {
       width: 32px;
@@ -319,6 +320,39 @@
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
       opacity: 0.85;
     }
+
+    /* ===== SEÇÕES (3 BOXES) ===== */
+
+.section-box {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+/* Deixa o primeiro box um pouco mais "limpo" se quiser */
+.section-progress {
+  padding-top: 4px;
+  padding-bottom: 8px;
+}
+
+/* Question-box com cor amenizada quando vier de aba */
+.question-text.active-1 {
+  background: #dbeafe;   /* azul bem claro */
+  border-color: #bfdbfe;
+}
+
+.question-text.active-2 {
+  background: #ccfbf1;   /* verde-água clarinho */
+  border-color: #a5f3fc;
+}
+
+.question-text.active-3 {
+  background: #bbf7d0;   /* verde claro */
+  border-color: #4ade80;
+}
+
   </style>
 </head>
 <body>
@@ -677,205 +711,235 @@
   }
 
   function renderQuestionScreen() {
-    // Wrapper com espaço para abas
-    const wrapper = document.createElement("div");
-    wrapper.className = "question-wrapper";
+  // Wrapper com espaço para abas
+  const wrapper = document.createElement("div");
+  wrapper.className = "question-wrapper";
 
-    const container = document.createElement("div");
-    container.className = "question-card";
+  const container = document.createElement("div");
+  container.className = "question-card";
 
-    const questionNumber = currentStep + 1;
-    const divisionIndex = Math.floor(currentStep / 9);
-    const itemIndex = currentStep % 9;
-    const division = divisions[divisionIndex];
-    const item = division.items[itemIndex];
+  const questionNumber = currentStep + 1;
+  const divisionIndex = Math.floor(currentStep / 9);
+  const itemIndex = currentStep % 9;
+  const division = divisions[divisionIndex];
+  const item = division.items[itemIndex];
 
-    const progress = document.createElement("div");
-    progress.className = "progress-bar";
-    const progressInner = document.createElement("div");
-    progressInner.className = "progress-bar-inner";
-    const percent = (questionNumber / totalQuestions) * 100;
-    progressInner.style.width = percent.toFixed(1) + "%";
-    progress.appendChild(progressInner);
-    container.appendChild(progress);
+  const currentVal = responses[divisionIndex][itemIndex] || 0;
+  const isActiveTabForThisQuestion =
+    selectedTab &&
+    selectedTab.divisionIndex === divisionIndex &&
+    selectedTab.itemIndex === itemIndex;
 
-    const progressText = document.createElement("div");
-    progressText.className = "progress-text";
-    const left = document.createElement("span");
-    left.textContent = `Pergunta ${questionNumber} de ${totalQuestions}`;
-    const right = document.createElement("span");
-    right.textContent = `Divisão ${division.id} / 12`;
-    progressText.appendChild(left);
-    progressText.appendChild(right);
-    container.appendChild(progressText);
+  // ===== BOX 1 – PROGRESSO =====
+  const progressBox = document.createElement("div");
+  progressBox.className = "section-box section-progress";
 
-    const title = document.createElement("h2");
-    title.textContent = `Divisão ${division.id}`;
-    container.appendChild(title);
+  const progress = document.createElement("div");
+  progress.className = "progress-bar";
+  const progressInner = document.createElement("div");
+  progressInner.className = "progress-bar-inner";
+  const percent = (questionNumber / totalQuestions) * 100;
+  progressInner.style.width = percent.toFixed(1) + "%";
+  progress.appendChild(progressInner);
+  progressBox.appendChild(progress);
 
-    const divisionLabel = document.createElement("div");
-    divisionLabel.className = "division-label";
-    divisionLabel.textContent =
-      "Para cada divisão, você pode atribuir os valores 3, 2 e 1 a, no máximo, três frases.";
-    container.appendChild(divisionLabel);
+  const progressText = document.createElement("div");
+  progressText.className = "progress-text";
+  const left = document.createElement("span");
+  left.textContent = `Pergunta ${questionNumber} de ${totalQuestions}`;
+  const right = document.createElement("span");
+  right.textContent = `Divisão ${division.id} / 12`;
+  progressText.appendChild(left);
+  progressText.appendChild(right);
+  progressBox.appendChild(progressText);
 
-    const questionBox = document.createElement("div");
-    questionBox.className = "question-text";
-    questionBox.textContent = item.text;
-    container.appendChild(questionBox);
+  container.appendChild(progressBox);
 
-    const helper = document.createElement("div");
-    helper.className = "helper-text";
-    helper.innerHTML =
-      "Marque o quanto esta frase representa a sua realidade:<br>" +
-      "<strong>3</strong> = descreve muito / é bem a minha cara<br>" +
-      "<strong>2</strong> = descreve bastante<br>" +
-      "<strong>1</strong> = descreve um pouco<br>" +
-      "<strong>0</strong> = não descreve a minha realidade<br>" +
-      "Em cada divisão, só é permitido usar uma vez o 3, uma vez o 2, uma vez o 1.";
-    container.appendChild(helper);
+  // ===== BOX 2 – TÍTULO / DIVISÃO =====
+  const divisionBox = document.createElement("div");
+  divisionBox.className = "section-box";
 
-    const valueRow = document.createElement("div");
-    valueRow.className = "value-options";
+  const title = document.createElement("h2");
+  title.textContent = `Divisão ${division.id} de 12 – Bloco de Avaliação`;
+  divisionBox.appendChild(title);
 
-    const currentVal = responses[divisionIndex][itemIndex] || 0;
-    [0, 1, 2, 3].forEach((val) => {
-      const optLabel = document.createElement("label");
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.name = "value";
-      radio.value = String(val);
-      if (currentVal === val) radio.checked = true;
-      radio.onchange = (e) => {
-        setAnswer(divisionIndex, itemIndex, e.target.value);
-        render(); // re-render para atualizar abas
-      };
-      const text = document.createElement("span");
-      text.textContent = String(val);
-      optLabel.appendChild(radio);
-      optLabel.appendChild(text);
-      valueRow.appendChild(optLabel);
-    });
+  const divisionLabel = document.createElement("div");
+  divisionLabel.className = "division-label";
+  divisionLabel.textContent =
+    "Para cada divisão, você pode atribuir os valores 3, 2 e 1 a, no máximo, três frases.";
+  divisionBox.appendChild(divisionLabel);
 
-    container.appendChild(valueRow);
+  const divResponses = responses[divisionIndex];
+  const usedValues = [1, 2, 3]
+    .map((v) => ({ v, used: divResponses.includes(v) }))
+    .filter((x) => x.used)
+    .map((x) => x.v)
+    .join(", ");
+  const nonZeroCount = divResponses.filter((v) => v > 0).length;
 
-    const divisionInfo = document.createElement("div");
-    divisionInfo.className = "small";
+  const divisionInfo = document.createElement("div");
+  divisionInfo.className = "small";
+  divisionInfo.textContent =
+    `Nesta divisão você já usou ${nonZeroCount} de 3 possíveis valores ` +
+    `(valores utilizados: ${usedValues || "nenhum ainda"}).`;
+  divisionBox.appendChild(divisionInfo);
 
-    const divResponses = responses[divisionIndex];
-    const usedValues = [1, 2, 3]
-      .map((v) => ({ v, used: divResponses.includes(v) }))
-      .filter((x) => x.used)
-      .map((x) => x.v)
-      .join(", ");
-    const nonZeroCount = divResponses.filter((v) => v > 0).length;
+  container.appendChild(divisionBox);
 
-    divisionInfo.textContent =
-      `Nesta divisão você já usou ${nonZeroCount} de 3 possíveis valores ` +
-      `(valores utilizados: ${usedValues || "nenhum ainda"}).`;
-    container.appendChild(divisionInfo);
+  // ===== BOX 3 – PERGUNTA EM SI =====
+  const questionBoxWrapper = document.createElement("div");
+  questionBoxWrapper.className = "section-box";
 
-    const buttons = document.createElement("div");
-    buttons.className = "buttons-row";
-
-    const backButton = document.createElement("button");
-    backButton.className = "secondary";
-    backButton.textContent = "Voltar";
-    backButton.disabled = currentStep === 0;
-    backButton.onclick = () => {
-      selectedTab = null; // ao navegar normal, limpa aba ativa
-      if (currentStep > 0) {
-        currentStep -= 1;
-        render();
-      } else {
-        currentStep = -1;
-        render();
-      }
-    };
-    buttons.appendChild(backButton);
-
-    const nextButton = document.createElement("button");
-    nextButton.className = "primary";
-    nextButton.textContent = questionNumber === totalQuestions ? "Ver resultado" : "Próxima";
-    nextButton.onclick = () => {
-      selectedTab = null; // fluxo normal
-      if (currentStep < totalQuestions - 1) {
-        currentStep += 1;
-        render();
-      } else {
-        currentStep = totalQuestions; // resumo
-        render();
-      }
-    };
-    buttons.appendChild(nextButton);
-
-    container.appendChild(buttons);
-
-    wrapper.appendChild(container);
-
-    // ===== ABAS LATERAIS DA DIVISÃO ATUAL =====
-    const tabsColumn = document.createElement("div");
-    tabsColumn.className = "tabs-column";
-
-    division.items.forEach((it, idx) => {
-      if (!hadTabBefore[divisionIndex][idx]) return; // só se já teve valor em algum momento
-
-      const val = responses[divisionIndex][idx] || 0;
-
-      const tabBtn = document.createElement("button");
-      tabBtn.className = "tab-button";
-      tabBtn.title = `Divisão ${division.id} - ${it.letter}`;
-
-      let bgColor = "#d1d5db"; // cinza padrão
-      if (val === 1) bgColor = "#bfdbfe"; // azul claro
-      if (val === 2) bgColor = "#a5f3fc"; // azul esverdeado
-      if (val === 3) bgColor = "#4ade80"; // verde mais saturado
-      if (val === 0) {
-        tabBtn.classList.add("inactive");
-      }
-      tabBtn.style.backgroundColor = bgColor;
-
-      const isActiveTab =
-        selectedTab &&
-        selectedTab.divisionIndex === divisionIndex &&
-        selectedTab.itemIndex === idx;
-
-      tabBtn.textContent = isActiveTab ? "×" : (val === 0 ? "0" : String(val));
-
-      tabBtn.onclick = () => {
-        const thisQuestionIndex = divisionIndex * 9 + idx;
-
-        if (isActiveTab) {
-          // Fechar aba e voltar para a pergunta original
-          if (responses[divisionIndex][idx] === 0) {
-            // Se voltou para 0, ao fechar some
-            hadTabBefore[divisionIndex][idx] = false;
-          }
-          if (selectedTab && typeof selectedTab.returnStep === "number") {
-            currentStep = selectedTab.returnStep;
-          } else {
-            currentStep = thisQuestionIndex;
-          }
-          selectedTab = null;
-          render();
-        } else {
-          // Abrir aba: ir até a pergunta e marcar como ativa
-          selectedTab = {
-            divisionIndex,
-            itemIndex: idx,
-            returnStep: currentStep
-          };
-          currentStep = thisQuestionIndex;
-          render();
-        }
-      };
-
-      tabsColumn.appendChild(tabBtn);
-    });
-
-    wrapper.appendChild(tabsColumn);
-    appRoot.appendChild(wrapper);
+  // pergunta com cor amenizada se veio de aba
+  let questionClass = "question-text";
+  if (isActiveTabForThisQuestion) {
+    if (currentVal === 1) questionClass += " active-1";
+    if (currentVal === 2) questionClass += " active-2";
+    if (currentVal === 3) questionClass += " active-3";
   }
+
+  const questionBox = document.createElement("div");
+  questionBox.className = questionClass;
+  questionBox.textContent = item.text;
+  questionBoxWrapper.appendChild(questionBox);
+
+  const helper = document.createElement("div");
+  helper.className = "helper-text";
+  helper.innerHTML =
+    "Marque o quanto esta frase representa a sua realidade:<br>" +
+    "<strong>3</strong> = descreve muito / é bem a minha cara<br>" +
+    "<strong>2</strong> = descreve bastante<br>" +
+    "<strong>1</strong> = descreve um pouco<br>" +
+    "<strong>0</strong> = não descreve a minha realidade<br>" +
+    "Em cada divisão, só é permitido usar uma vez o 3, uma vez o 2, uma vez o 1.";
+  questionBoxWrapper.appendChild(helper);
+
+  const valueRow = document.createElement("div");
+  valueRow.className = "value-options";
+
+  [0, 1, 2, 3].forEach((val) => {
+    const optLabel = document.createElement("label");
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "value";
+    radio.value = String(val);
+    if (currentVal === val) radio.checked = true;
+    radio.onchange = (e) => {
+      setAnswer(divisionIndex, itemIndex, e.target.value);
+      render(); // re-render para atualizar abas e cores
+    };
+    const text = document.createElement("span");
+    text.textContent = String(val);
+    optLabel.appendChild(radio);
+    optLabel.appendChild(text);
+    valueRow.appendChild(optLabel);
+  });
+
+  questionBoxWrapper.appendChild(valueRow);
+
+  const buttons = document.createElement("div");
+  buttons.className = "buttons-row";
+
+  const backButton = document.createElement("button");
+  backButton.className = "secondary";
+  backButton.textContent = "Voltar";
+  backButton.disabled = currentStep === 0;
+  backButton.onclick = () => {
+    selectedTab = null; // ao navegar normal, limpa aba ativa
+    if (currentStep > 0) {
+      currentStep -= 1;
+      render();
+    } else {
+      currentStep = -1;
+      render();
+    }
+  };
+  buttons.appendChild(backButton);
+
+  const nextButton = document.createElement("button");
+  nextButton.className = "primary";
+  nextButton.textContent = questionNumber === totalQuestions ? "Ver resultado" : "Próxima";
+  nextButton.onclick = () => {
+    selectedTab = null; // fluxo normal
+    if (currentStep < totalQuestions - 1) {
+      currentStep += 1;
+      render();
+    } else {
+      currentStep = totalQuestions; // resumo
+      render();
+    }
+  };
+  buttons.appendChild(nextButton);
+
+  questionBoxWrapper.appendChild(buttons);
+
+  container.appendChild(questionBoxWrapper);
+
+  // ===== ABAS LATERAIS DA DIVISÃO ATUAL =====
+  const tabsColumn = document.createElement("div");
+  tabsColumn.className = "tabs-column";
+
+  division.items.forEach((it, idx) => {
+    if (!hadTabBefore[divisionIndex][idx]) return; // só se já teve valor em algum momento
+
+    const val = responses[divisionIndex][idx] || 0;
+
+    const tabBtn = document.createElement("button");
+    tabBtn.className = "tab-button";
+    tabBtn.title = `Divisão ${division.id} - ${it.letter}`;
+
+    let bgColor = "#d1d5db"; // cinza padrão
+    if (val === 1) bgColor = "#bfdbfe"; // azul claro
+    if (val === 2) bgColor = "#a5f3fc"; // azul esverdeado
+    if (val === 3) bgColor = "#4ade80"; // verde mais saturado
+    if (val === 0) {
+      tabBtn.classList.add("inactive");
+    }
+    tabBtn.style.backgroundColor = bgColor;
+
+    const isActiveTab =
+      selectedTab &&
+      selectedTab.divisionIndex === divisionIndex &&
+      selectedTab.itemIndex === idx;
+
+    tabBtn.textContent = isActiveTab ? "×" : (val === 0 ? "0" : String(val));
+
+    tabBtn.onclick = () => {
+      const thisQuestionIndex = divisionIndex * 9 + idx;
+
+      if (isActiveTab) {
+        // Fechar aba e voltar para a pergunta original
+        if (responses[divisionIndex][idx] === 0) {
+          // Se voltou para 0, ao fechar some
+          hadTabBefore[divisionIndex][idx] = false;
+        }
+        if (selectedTab && typeof selectedTab.returnStep === "number") {
+          currentStep = selectedTab.returnStep;
+        } else {
+          currentStep = thisQuestionIndex;
+        }
+        selectedTab = null;
+        render();
+      } else {
+        // Abrir aba: ir até a pergunta e marcar como ativa
+        selectedTab = {
+          divisionIndex,
+          itemIndex: idx,
+          returnStep: currentStep
+        };
+        currentStep = thisQuestionIndex;
+        render();
+      }
+    };
+
+    tabsColumn.appendChild(tabBtn);
+  });
+
+  wrapper.appendChild(container);
+  wrapper.appendChild(tabsColumn);
+  appRoot.appendChild(wrapper);
+}
+
 
   function renderSummaryScreen() {
     const totals = computeTotals();
