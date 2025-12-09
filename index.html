@@ -356,15 +356,15 @@
 /* ===== PROGRESSO POR DIVISÃO (SEGMENTOS CLICÁVEIS) ===== */
 
 .divisions-progress {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr)); /* 6 colunas */
   gap: 4px;
-  overflow-x: auto;
-  padding-bottom: 4px;
   margin-bottom: 4px;
+  padding-bottom: 4px;
 }
 
 .division-segment {
-  min-width: 34px;
+  width: 100%;
   padding: 4px 4px 3px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
@@ -372,9 +372,9 @@
   text-align: center;
   font-size: 0.7rem;
   cursor: pointer;
-  flex-shrink: 0;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
 }
+
 
 .division-segment:hover {
   transform: translateY(-1px);
