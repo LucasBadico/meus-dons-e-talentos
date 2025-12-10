@@ -284,15 +284,29 @@
 
     /* ===== FOOTER – FICHAS DE PONTUAÇÃO ===== */
 
-     
-.footer-row {
-    margin-top: 10px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-}
-    .content-row {
-      margin-bottom: 130px;
+    /* Footer: fixo em mobile, normal em desktop */
+    @media (max-width: 768px) {
+      .footer-row {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        padding: 0 12px;
+        box-sizing: border-box;
+      }
+      .content-row {
+        margin-bottom: 140px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .footer-row {
+        margin-top: 10px;
+      }
+      .content-row {
+        margin-bottom: 10px;
+      }
     }
 
     .score-row {
@@ -446,7 +460,31 @@
   // ===== CONFIGURAÇÃO DA URL DE ENVIO =====
   const SUBMIT_URL = "https://webhook.site/41cd5481-07cc-4b96-bcdc-de3ddb68223c"; // troque aqui
   const RESULT_HASH_KEY = "dons_espirituais_result_hash_v1";
+  // monta um resumo enxuto das respostas:
+// { [divisão]: { 3: numeroPergunta, 2: numeroPergunta, 1: numeroPergunta } }
+function buildCompactAnswers() {
+  const compact = {};
 
+  divisions.forEach((div, di) => {
+    const divMap = {};
+    // queremos saber em qual pergunta dessa divisão está o 3, o 2 e o 1
+    [3, 2, 1].forEach((val) => {
+      const idx = responses[di].findIndex((v) => v === val);
+      if (idx !== -1) {
+        // pergunta numerada de 1 a 9 dentro da divisão
+        divMap[val] = idx + 1;
+      }
+    });
+    compact[div.id] = divMap;
+  });
+
+  return compact;
+}
+
+// helper seguro pra base64 com UTF-8
+function toBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
   // ===== DADOS DO QUESTIONÁRIO =====
 
   const gifts = [
@@ -779,10 +817,6 @@
 
     const buttons = document.createElement("div");
     buttons.className = "buttons-row";
-
-    const buttons = document.createElement("div");
-buttons.className = "buttons-row";
-
   // Verifica se existe resultado salvo no localStorage
   let hasStoredResult = false;
   try {
@@ -798,7 +832,6 @@ buttons.className = "buttons-row";
     viewResultButton.textContent = "Ver último resultado";
     viewResultButton.onclick = () => {
       const restored = hydrateFromStorage();
-      selectedTab = null;
       currentStep = totalQuestions; // vai direto para o resumo
       render();
     };
@@ -1101,42 +1134,15 @@ buttons.className = "buttons-row";
       ...Object.values(totals)
     );
 
-    // Monta o "núcleo" do resultado que vamos hashear
-    const answersPayload = [];
-    divisions.forEach((div, di) => {
-      div.items.forEach((item, ii) => {
-        answersPayload.push({
-          division: div.id,
-          questionLetter: item.letter,
-          questionText: item.text,
-          value: responses[di][ii] || 0
-        });
-      });
+    // Verifica se há mudança e envia automaticamente
+    const compactAnswers = buildCompactAnswers();
+    const hashSource = JSON.stringify({
+      name: participantName.trim(),
+      email: participantEmail.trim().toLowerCase(),
+      answers: compactAnswers
     });
-
-    const totalsPayload = {};
-    gifts.forEach((g) => {
-      totalsPayload[g.letter] = {
-        gift: g.name,
-        total: totals[g.letter]
-      };
-    });
-
-    const topGiftsPayload = sortedGifts.slice(0, 3).map((g) => ({
-      letter: g.letter,
-      name: g.name,
-      total: totals[g.letter]
-    }));
-
-    const baseForHash = {
-      name: participantName,
-      email: participantEmail,
-      totals: totalsPayload,
-      topGifts: topGiftsPayload,
-      answers: answersPayload
-    };
-
-    const currentHash = computeResultHash(baseForHash);
+    const currentHash = toBase64(hashSource);
+    
     let lastHash = null;
     try {
       lastHash = localStorage.getItem(RESULT_HASH_KEY);
@@ -1144,9 +1150,10 @@ buttons.className = "buttons-row";
       // se der erro no localStorage, só ignora
     }
 
-    // Se mudou o resultado, envia automaticamente
-    if (currentHash !== lastHash) {
-      sendResults(baseForHash, currentHash);
+    // Se mudou o resultado, envia automaticamente (em background)
+    if (currentHash !== lastHash && !isSending) {
+      // Envia de forma assíncrona para não bloquear a renderização
+      setTimeout(() => sendResults(), 100);
     }
 
     const container = document.createElement("div");
@@ -1254,10 +1261,10 @@ buttons.className = "buttons-row";
 
     const sendButton = document.createElement("button");
     sendButton.className = "primary";
-    sendButton.textContent = isSending ? "Enviando..." : "Enviar respostas";
+    sendButton.textContent = isSending ? "Enviando..." : "Reenviar respostas";
     sendButton.disabled = isSending;
     sendButton.onclick = () => {
-      sendResults(totals, sortedGifts);
+      sendResults();
     };
     buttons.appendChild(sendButton);
 
@@ -1277,7 +1284,6 @@ function hydrateFromStorage() {
     data.responses.forEach((div, di) => {
       div.forEach((val, ii) => {
         responses[di][ii] = val;
-        if (val > 0) hadTabBefore[di][ii] = true;
       });
     });
 
@@ -1288,34 +1294,85 @@ function hydrateFromStorage() {
 }
 
   // ===== ENVIO PARA A API =====
-
- function sendResults(basePayload, currentHash) {
+function sendResults() {
   if (!SUBMIT_URL || SUBMIT_URL.includes("sua-api-aqui")) {
     alert("Defina a constante SUBMIT_URL com a URL real antes de enviar.");
     return;
   }
 
-  // Checa se já enviamos exatamente esse resultado
+  // 1) Calcula totais internamente
+  const totals = computeTotals();
+  const sortedGifts = gifts
+    .slice()
+    .sort((a, b) => totals[b.letter] - totals[a.letter]);
+
+  // 2) resumo compacto das respostas
+  const compactAnswers = buildCompactAnswers();
+
+  // 3) string base para "hash": só nome, email e resumo compacto
+  const hashSource = JSON.stringify({
+    name: participantName.trim(),
+    email: participantEmail.trim().toLowerCase(),
+    answers: compactAnswers
+  });
+
+  const currentHash = toBase64(hashSource);
   let lastHash = null;
   try {
     lastHash = localStorage.getItem(RESULT_HASH_KEY);
   } catch (e) {
-    // se localStorage não estiver disponível, segue sem travar
+    // se der erro no localStorage, só ignora
   }
 
+  // se for igual ao último salvo, não precisa enviar de novo
   if (lastHash === currentHash) {
-    console.log("Resultado idêntico ao último enviado; não reenviando.");
+    alert("Este resultado já foi enviado anteriormente.");
     return;
   }
 
+  // 4) payload completo para envio
+  const answersPayload = [];
+  divisions.forEach((div, di) => {
+    div.items.forEach((item, ii) => {
+      answersPayload.push({
+        division: div.id,
+        questionLetter: item.letter,
+        questionIndex: ii + 1,          // 1 a 9 dentro da divisão
+        questionText: item.text,
+        value: responses[di][ii] || 0
+      });
+    });
+  });
+
+  const totalsPayload = {};
+  gifts.forEach((g) => {
+    totalsPayload[g.letter] = {
+      gift: g.name,
+      total: totals[g.letter]
+    };
+  });
+
+  const topGiftsPayload = sortedGifts.slice(0, 3).map((g) => ({
+    letter: g.letter,
+    name: g.name,
+    total: totals[g.letter]
+  }));
+
+  const sentAt = new Date().toISOString();
+
   const payload = {
-    ...basePayload,
-    sent_at: new Date().toISOString(),
-    result_hash: currentHash
+    name: participantName,
+    email: participantEmail,
+    sent_at: sentAt,          // <-- aqui o sent_at
+    hash: currentHash,        // <-- base64 de nome+email+resumo
+    compactAnswers,           // <-- o mapa { divisão: {3,2,1} }
+    totals: totalsPayload,
+    topGifts: topGiftsPayload,
+    answers: answersPayload
   };
 
   isSending = true;
-  render();
+  // Não chama render() aqui para evitar loop infinito
 
   fetch(SUBMIT_URL, {
     method: "POST",
@@ -1329,22 +1386,20 @@ function hydrateFromStorage() {
       return res.json().catch(() => null);
     })
     .then(() => {
-      try {
-        localStorage.setItem(RESULT_HASH_KEY, JSON.stringify({
-        hash,
-        sent_at,
-        totals,
-        topGifts,
-        responses
-      }));
-      } catch (e) {
-        // se não der pra salvar, vida que segue
-      }
       alert("Respostas enviadas com sucesso!");
+      // se deu certo, atualiza o "hash" salvo
+      try {
+        localStorage.setItem(RESULT_HASH_KEY, currentHash);
+      } catch (e) {
+        console.warn("Não consegui salvar no localStorage:", e);
+      }
+      render(); // re-renderiza para atualizar o botão
     })
     .catch((err) => {
       console.error(err);
-      alert("Ocorreu um erro ao enviar as respostas. Verifique a URL da API ou tente novamente.");
+      alert(
+        "Ocorreu um erro ao enviar as respostas. Verifique a URL da API ou tente novamente."
+      );
     })
     .finally(() => {
       isSending = false;
