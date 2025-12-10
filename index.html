@@ -445,6 +445,7 @@
 <script>
   // ===== CONFIGURAÇÃO DA URL DE ENVIO =====
   const SUBMIT_URL = "https://webhook.site/41cd5481-07cc-4b96-bcdc-de3ddb68223c"; // troque aqui
+  const RESULT_HASH_KEY = "dons_espirituais_result_hash_v1";
 
   // ===== DADOS DO QUESTIONÁRIO =====
 
@@ -779,6 +780,30 @@
     const buttons = document.createElement("div");
     buttons.className = "buttons-row";
 
+    const buttons = document.createElement("div");
+buttons.className = "buttons-row";
+
+  // Verifica se existe resultado salvo no localStorage
+  let hasStoredResult = false;
+  try {
+    hasStoredResult = !!localStorage.getItem(RESULT_HASH_KEY);
+  } catch (e) {
+    hasStoredResult = false;
+  }
+
+  // Botão "Ver último resultado", só aparece se houver algo salvo
+  if (hasStoredResult) {
+    const viewResultButton = document.createElement("button");
+    viewResultButton.className = "secondary";
+    viewResultButton.textContent = "Ver último resultado";
+    viewResultButton.onclick = () => {
+      const restored = hydrateFromStorage();
+      selectedTab = null;
+      currentStep = totalQuestions; // vai direto para o resumo
+      render();
+    };
+   buttons.appendChild(viewResultButton);
+  }
     const startButton = document.createElement("button");
     startButton.className = "primary";
     startButton.textContent = "Começar";
@@ -1240,6 +1265,27 @@
 
     appRoot.appendChild(container);
   }
+function hydrateFromStorage() {
+  try {
+    const raw = localStorage.getItem(RESULT_HASH_KEY);
+    if (!raw) return false;
+
+    const data = JSON.parse(raw);
+
+    if (!data.responses || !Array.isArray(data.responses)) return false;
+
+    data.responses.forEach((div, di) => {
+      div.forEach((val, ii) => {
+        responses[di][ii] = val;
+        if (val > 0) hadTabBefore[di][ii] = true;
+      });
+    });
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
   // ===== ENVIO PARA A API =====
 
@@ -1284,7 +1330,13 @@
     })
     .then(() => {
       try {
-        localStorage.setItem(RESULT_HASH_KEY, currentHash);
+        localStorage.setItem(RESULT_HASH_KEY, JSON.stringify({
+        hash,
+        sent_at,
+        totals,
+        topGifts,
+        responses
+      }));
       } catch (e) {
         // se não der pra salvar, vida que segue
       }
