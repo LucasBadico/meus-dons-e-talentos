@@ -1076,6 +1076,54 @@
       ...Object.values(totals)
     );
 
+    // Monta o "núcleo" do resultado que vamos hashear
+    const answersPayload = [];
+    divisions.forEach((div, di) => {
+      div.items.forEach((item, ii) => {
+        answersPayload.push({
+          division: div.id,
+          questionLetter: item.letter,
+          questionText: item.text,
+          value: responses[di][ii] || 0
+        });
+      });
+    });
+
+    const totalsPayload = {};
+    gifts.forEach((g) => {
+      totalsPayload[g.letter] = {
+        gift: g.name,
+        total: totals[g.letter]
+      };
+    });
+
+    const topGiftsPayload = sortedGifts.slice(0, 3).map((g) => ({
+      letter: g.letter,
+      name: g.name,
+      total: totals[g.letter]
+    }));
+
+    const baseForHash = {
+      name: participantName,
+      email: participantEmail,
+      totals: totalsPayload,
+      topGifts: topGiftsPayload,
+      answers: answersPayload
+    };
+
+    const currentHash = computeResultHash(baseForHash);
+    let lastHash = null;
+    try {
+      lastHash = localStorage.getItem(RESULT_HASH_KEY);
+    } catch (e) {
+      // se der erro no localStorage, só ignora
+    }
+
+    // Se mudou o resultado, envia automaticamente
+    if (currentHash !== lastHash) {
+      sendResults(baseForHash, currentHash);
+    }
+
     const container = document.createElement("div");
 
     const title = document.createElement("h2");
@@ -1195,72 +1243,62 @@
 
   // ===== ENVIO PARA A API =====
 
-  function sendResults(totals, sortedGifts) {
-    if (!SUBMIT_URL || SUBMIT_URL.includes("sua-api-aqui")) {
-      alert("Defina a constante SUBMIT_URL com a URL real antes de enviar.");
-      return;
-    }
-
-    const answersPayload = [];
-    divisions.forEach((div, di) => {
-      div.items.forEach((item, ii) => {
-        answersPayload.push({
-          division: div.id,
-          questionLetter: item.letter,
-          questionText: item.text,
-          value: responses[di][ii] || 0
-        });
-      });
-    });
-
-    const totalsPayload = {};
-    gifts.forEach((g) => {
-      totalsPayload[g.letter] = {
-        gift: g.name,
-        total: totals[g.letter]
-      };
-    });
-
-    const topGiftsPayload = sortedGifts.slice(0, 3).map((g) => ({
-      letter: g.letter,
-      name: g.name,
-      total: totals[g.letter]
-    }));
-
-    const payload = {
-      name: participantName,
-      email: participantEmail,
-      totals: totalsPayload,
-      topGifts: topGiftsPayload,
-      answers: answersPayload
-    };
-
-    isSending = true;
-    render();
-
-    fetch(SUBMIT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro HTTP " + res.status);
-        return res.json().catch(() => null);
-      })
-      .then(() => {
-        alert("Respostas enviadas com sucesso!");
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Ocorreu um erro ao enviar as respostas. Verifique a URL da API ou tente novamente.");
-      })
-      .finally(() => {
-        isSending = false;
-        render();
-      });
+ function sendResults(basePayload, currentHash) {
+  if (!SUBMIT_URL || SUBMIT_URL.includes("sua-api-aqui")) {
+    alert("Defina a constante SUBMIT_URL com a URL real antes de enviar.");
+    return;
   }
+
+  // Checa se já enviamos exatamente esse resultado
+  let lastHash = null;
+  try {
+    lastHash = localStorage.getItem(RESULT_HASH_KEY);
+  } catch (e) {
+    // se localStorage não estiver disponível, segue sem travar
+  }
+
+  if (lastHash === currentHash) {
+    console.log("Resultado idêntico ao último enviado; não reenviando.");
+    return;
+  }
+
+  const payload = {
+    ...basePayload,
+    sent_at: new Date().toISOString(),
+    result_hash: currentHash
+  };
+
+  isSending = true;
+  render();
+
+  fetch(SUBMIT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("Erro HTTP " + res.status);
+      return res.json().catch(() => null);
+    })
+    .then(() => {
+      try {
+        localStorage.setItem(RESULT_HASH_KEY, currentHash);
+      } catch (e) {
+        // se não der pra salvar, vida que segue
+      }
+      alert("Respostas enviadas com sucesso!");
+    })
+    .catch((err) => {
+      console.error(err);
+      alert("Ocorreu um erro ao enviar as respostas. Verifique a URL da API ou tente novamente.");
+    })
+    .finally(() => {
+      isSending = false;
+      render();
+    });
+}
 
   // Inicializa
   render();
