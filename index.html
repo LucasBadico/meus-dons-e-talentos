@@ -1398,12 +1398,12 @@ function sendResults() {
     .catch((err) => {
       console.error(err);
       alert(
-        "Ocorreu um erro ao enviar as respostas. Verifique a URL da API ou tente novamente."
+        "Ocorreu um erro ao enviar as respostas."
       );
     })
     .finally(() => {
       isSending = false;
-      render();
+      // render();
     });
 }
 
