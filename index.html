@@ -672,6 +672,8 @@ function toBase64(str) {
 
   const totalQuestions = divisions.length * 9; // ainda útil para cálculo, se quiser
 
+  const ministerios = ["Jovens", "Adolescentes"];
+  let selectedMinisterio = "";
   // ===== ESTADO DO APP =====
 
   // currentStep:
@@ -781,8 +783,10 @@ function toBase64(str) {
 
     const nameField = document.createElement("div");
     nameField.className = "field";
+
     const nameLabel = document.createElement("label");
     nameLabel.textContent = "Nome completo";
+
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.value = participantName;
@@ -790,6 +794,8 @@ function toBase64(str) {
     nameInput.oninput = (e) => {
       participantName = e.target.value;
     };
+
+    const minisInput = document.createElement("i")
     nameField.appendChild(nameLabel);
     nameField.appendChild(nameInput);
     container.appendChild(nameField);
@@ -808,6 +814,47 @@ function toBase64(str) {
     emailField.appendChild(emailLabel);
     emailField.appendChild(emailInput);
     container.appendChild(emailField);
+
+    const ministerioField = document.createElement("div");
+    ministerioField.className = "field";
+
+    const ministerioLabel = document.createElement("label");
+    ministerioLabel.textContent = "Ministério";
+
+    const ministerioSelect = document.createElement("select");
+    ministerioSelect.style.padding = "10px 12px";
+    ministerioSelect.style.borderRadius = "8px";
+    ministerioSelect.style.border = "1px solid #d1d5db";
+    ministerioSelect.style.fontSize = "0.95rem";
+    ministerioSelect.style.outline = "none";
+    ministerioSelect.style.boxSizing = "border-box";
+
+    // valor atual do state (importante para hydrate)
+    ministerioSelect.value = selectedMinisterio || "";
+
+    const optDefault = document.createElement("option");
+    optDefault.value = "";
+    optDefault.textContent = "Selecione um ministério...";
+    ministerioSelect.appendChild(optDefault);
+
+    ministerios.forEach((m) => {
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m;
+      ministerioSelect.appendChild(opt);
+    });
+
+    // 👉 aqui estava faltando
+    ministerioSelect.onchange = (e) => {
+      selectedMinisterio = e.target.value;
+    };
+
+    ministerioField.appendChild(ministerioLabel);
+    ministerioField.appendChild(ministerioSelect);
+
+    // adiciona no container da intro (logo após nome ou antes do email)
+    container.appendChild(ministerioField);
+
 
     const helper = document.createElement("p");
     helper.className = "small";
@@ -841,7 +888,7 @@ function toBase64(str) {
     startButton.className = "primary";
     startButton.textContent = "Começar";
     startButton.onclick = () => {
-      if (!participantName.trim() || !participantEmail.trim()) {
+      if (!participantName.trim() || !participantEmail.trim() || !selectedMinisterio) {
         alert("Por favor, preencha nome e e-mail para continuar.");
         return;
       }
@@ -1277,21 +1324,70 @@ function hydrateFromStorage() {
     const raw = localStorage.getItem(RESULT_HASH_KEY);
     if (!raw) return false;
 
-    const data = JSON.parse(raw);
+    // Pode ser JSON (novo) ou string (antigo). Vamos tentar JSON.
+    let data = null;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      // Se era só uma string (hash antigo), não dá pra hidratar respostas.
+      return false;
+    }
 
-    if (!data.responses || !Array.isArray(data.responses)) return false;
+    // Se veio no formato novo { hash, name, email, ministerio, responses... }
+    if (data && typeof data === "object") {
+      // restaura dados do participante (se existirem)
+      if (typeof data.name === "string") participantName = data.name;
+      if (typeof data.email === "string") participantEmail = data.email;
+      if (typeof data.ministerio === "string") selectedMinisterio = data.ministerio;
 
-    data.responses.forEach((div, di) => {
-      div.forEach((val, ii) => {
-        responses[di][ii] = val;
-      });
-    });
+      // restaura responses (matriz 12x9)
+      if (Array.isArray(data.responses)) {
+        data.responses.forEach((div, di) => {
+          if (!Array.isArray(div) || !responses[di]) return;
+          div.forEach((val, ii) => {
+            const n = parseInt(val, 10);
+            responses[di][ii] = Number.isFinite(n) ? n : 0;
+          });
+        });
+        return true;
+      }
 
-    return true;
+      // fallback: se não tiver responses mas tiver compactAnswers
+      // (aqui dá pra reconstituir a matriz)
+      if (data.compactAnswers && typeof data.compactAnswers === "object") {
+        // zera tudo
+        for (let di = 0; di < responses.length; di++) {
+          for (let ii = 0; ii < responses[di].length; ii++) {
+            responses[di][ii] = 0;
+          }
+        }
+
+        Object.keys(data.compactAnswers).forEach((divIdStr) => {
+          const divId = parseInt(divIdStr, 10);
+          if (!Number.isFinite(divId)) return;
+          const di = divisions.findIndex((d) => d.id === divId);
+          if (di === -1) return;
+
+          const map = data.compactAnswers[divIdStr];
+          if (!map || typeof map !== "object") return;
+
+          [1, 2, 3].forEach((score) => {
+            const qNum = map[String(score)] ?? map[score];
+            const idx = parseInt(qNum, 10) - 1; // 1..9 -> 0..8
+            if (idx >= 0 && idx < 9) responses[di][idx] = score;
+          });
+        });
+
+        return true;
+      }
+    }
+
+    return false;
   } catch (e) {
     return false;
   }
 }
+
 
   // ===== ENVIO PARA A API =====
 function sendResults() {
@@ -1363,6 +1459,7 @@ function sendResults() {
   const payload = {
     name: participantName,
     email: participantEmail,
+    ministerio: selectedMinisterio,
     sent_at: sentAt,          // <-- aqui o sent_at
     hash: currentHash,        // <-- base64 de nome+email+resumo
     compactAnswers,           // <-- o mapa { divisão: {3,2,1} }
@@ -1388,8 +1485,17 @@ function sendResults() {
     .then(() => {
       alert("Respostas enviadas com sucesso!");
       // se deu certo, atualiza o "hash" salvo
-      try {
-        localStorage.setItem(RESULT_HASH_KEY, currentHash);
+     try {
+        const storedData = {
+          hash: currentHash,
+          sent_at: sentAt,
+          name: participantName,
+          email: participantEmail,
+          ministerio: selectedMinisterio,
+          compactAnswers,
+          responses
+        };
+        localStorage.setItem(RESULT_HASH_KEY, JSON.stringify(storedData));
       } catch (e) {
         console.warn("Não consegui salvar no localStorage:", e);
       }
