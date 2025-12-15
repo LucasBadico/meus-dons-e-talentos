@@ -236,6 +236,8 @@
       padding: 8px 10px;
       background: #f9fafb;
       font-size: 0.92rem;
+      margin-bottom: 12px;
+
     }
 
     .question-header {
@@ -314,6 +316,7 @@
       gap: 8px;
       margin-bottom: 8px;
       flex-wrap: wrap;
+      margin-top: 12px;
     }
 
     .score-slot {
@@ -451,6 +454,114 @@
       background: linear-gradient(90deg, #10b981, #22c55e);
       transition: width 0.3s ease;
     }
+
+    select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+    }
+
+    button.outline-primary {
+  background: transparent;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+  box-shadow: none;
+}
+
+button.outline-primary:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+button.outline-primary:active {
+  background: rgba(37, 99, 235, 0.12);
+  transform: translateY(1px);
+}
+
+/* ===== ACCORDION (DETAILS/SUMMARY) ===== */
+.accordion-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.accordion-item + .accordion-item {
+  margin-top: 10px;
+}
+
+.accordion-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  user-select: none;
+}
+
+.accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accordion-name {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+
+.accordion-refs {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.accordion-arrow {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.06);
+  color: #111827;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.accordion-item[open] .accordion-arrow {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  padding: 0 12px 12px;
+}
+
+.accordion-body .question-text {
+  margin-top: 6px;
+}
+
+.accordion-subtitle {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+
   </style>
 </head>
 <body>
@@ -754,14 +865,322 @@ function toBase64(str) {
   function render() {
     appRoot.innerHTML = "";
 
-    if (currentStep === -1) {
-      renderIntroScreen();
-    } else if (currentStep >= 0 && currentStep < divisions.length) {
-      renderDivisionScreen();
-    } else {
-      renderSummaryScreen();
-    }
+     if (currentStep === -1) {
+        renderIntroScreen();
+      } else if (currentStep === -2) {
+        renderGiftsExplanationScreen();
+      } else if (currentStep >= 0 && currentStep < divisions.length) {
+        renderDivisionScreen();
+      } else {
+        renderSummaryScreen();
+      }
   }
+
+  function renderGiftsExplanationScreen() {
+  const container = document.createElement("div");
+
+  const title = document.createElement("h2");
+  title.textContent = "Explicação dos dons espirituais";
+  container.appendChild(title);
+
+  const intro = document.createElement("p");
+  intro.textContent =
+    "Abaixo vai um resumo simples de cada dom, com referências bíblicas, pontos fortes e pontos de atenção. Use isso como guia de conversa, oração e observação prática.";
+  container.appendChild(intro);
+
+  // ===== VIDEO (placeholder) =====
+  const videoBox = document.createElement("div");
+  videoBox.className = "section-box";
+
+  // const videoTitle = document.createElement("h3");
+  // videoTitle.textContent = "Vídeo explicativo (em breve)";
+  // videoBox.appendChild(videoTitle);
+
+  // const videoHint = document.createElement("p");
+  // videoHint.className = "small";
+  // videoHint.textContent =
+  //   "Quando você tiver o link do vídeo, dá pra embedar aqui (YouTube/Vimeo) ou abrir em nova aba.";
+  // videoBox.appendChild(videoHint);
+
+  // Se quiser já deixar pronto com um URL:
+  // const VIDEO_URL = ""; // ex: "https://www.youtube.com/embed/SEU_ID"
+  // if (VIDEO_URL) {
+  //   const iframe = document.createElement("iframe");
+  //   iframe.src = VIDEO_URL;
+  //   iframe.width = "100%";
+  //   iframe.height = "220";
+  //   iframe.style.border = "0";
+  //   iframe.style.borderRadius = "12px";
+  //   iframe.allow =
+  //     "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  //   iframe.allowFullscreen = true;
+  //   videoBox.appendChild(iframe);
+  // }
+
+  // container.appendChild(videoBox);
+
+  // ===== CONTEÚDO DOS DONS =====
+  const contentBox = document.createElement("div");
+  contentBox.className = "section-box";
+
+  const giftsExplained = [
+    {
+      letter: "A",
+      name: "Misericórdia",
+      refs: "Rm 12:8; Mt 9:36; Lc 10:33–35",
+      summary:
+        "Capacidade de perceber dor e sofrimento e agir com compaixão, trazendo alívio e acolhimento.",
+      strengths: [
+        "Empatia e sensibilidade espiritual",
+        "Acolhe sem humilhar",
+        "Gera ambiente seguro para cura e restauração"
+      ],
+      cautions: [
+        "Pode absorver o peso emocional dos outros",
+        "Risco de evitar confrontos necessários",
+        "Pode virar “salvador” e se sobrecarregar"
+      ]
+    },
+    {
+      letter: "B",
+      name: "Contribuição",
+      refs: "Rm 12:8; 2Co 9:6–8; Pv 3:9",
+      summary:
+        "Alegria e prontidão em suprir necessidades com recursos, com generosidade e propósito no Reino.",
+      strengths: [
+        "Generosidade consistente",
+        "Visão prática de sustento e avanço da obra",
+        "Estimula fé e gratidão na comunidade"
+      ],
+      cautions: [
+        "Risco de controlar decisões por ter contribuído",
+        "Pode medir espiritualidade por “dar muito”",
+        "Pode se frustrar com má administração"
+      ]
+    },
+    {
+      letter: "C",
+      name: "Evangelista",
+      refs: "Ef 4:11; 2Tm 4:5; At 8:5–8",
+      summary:
+        "Facilidade e paixão em anunciar Cristo a quem ainda não crê, conduzindo pessoas ao evangelho.",
+      strengths: [
+        "Coragem e clareza ao falar de Jesus",
+        "Cria pontes e conversas naturais",
+        "Motiva a igreja a sair para alcançar"
+      ],
+      cautions: [
+        "Pode perder paciência com processos lentos",
+        "Risco de reduzir tudo a “decisão” sem discipulado",
+        "Pode se isolar se a igreja não acompanha"
+      ]
+    },
+    {
+      letter: "D",
+      name: "Pastor/Mestre",
+      refs: "Ef 4:11–13; 1Pe 5:2–3; At 20:28",
+      summary:
+        "Cuidado espiritual com pessoas (pastoreio) e ensino que orienta crescimento, proteção e maturidade.",
+      strengths: [
+        "Acompanha, protege e consola",
+        "Ajuda pessoas a crescerem com constância",
+        "Constrói unidade e maturidade no corpo"
+      ],
+      cautions: [
+        "Risco de carregar tudo sozinho",
+        "Pode “infantilizar” pessoas por excesso de cuidado",
+        "Pode evitar delegar por zelo"
+      ]
+    },
+    {
+      letter: "E",
+      name: "Exortação",
+      refs: "Rm 12:8; Hb 10:24–25; At 14:21–22",
+      summary:
+        "Capacidade de encorajar, orientar e chamar à obediência, ajudando pessoas a darem passos práticos.",
+      strengths: [
+        "Motiva à ação e perseverança",
+        "Traz clareza e direção em momentos de confusão",
+        "Ajuda a transformar teoria em prática"
+      ],
+      cautions: [
+        "Pode soar duro se faltar ternura",
+        "Risco de dar “conselho demais” sem ouvir",
+        "Pode confundir exortação com cobrança"
+      ]
+    },
+    {
+      letter: "F",
+      name: "Governo (Liderança/Administrar)",
+      refs: "Rm 12:8; 1Co 12:28; Ne 2:17–18",
+      summary:
+        "Habilidade de organizar pessoas e recursos, dar direção e estruturar para que o ministério funcione bem.",
+      strengths: [
+        "Organização e visão de execução",
+        "Boa delegação e coordenação",
+        "Melhora eficiência e continuidade"
+      ],
+      cautions: [
+        "Risco de controlar em excesso",
+        "Pode priorizar resultado acima de pessoas",
+        "Pode ficar impaciente com caos e improviso"
+      ]
+    },
+    {
+      letter: "G",
+      name: "Ensino",
+      refs: "Rm 12:7; At 18:24–26; 2Tm 2:15",
+      summary:
+        "Facilidade em explicar a Palavra com clareza, ajudando outros a entender e aplicar com fundamento.",
+      strengths: [
+        "Clareza e estrutura ao explicar",
+        "Ajuda a igreja a ter base sólida",
+        "Forma gente que aprende a estudar"
+      ],
+      cautions: [
+        "Pode virar só conteúdo sem prática",
+        "Risco de discutir mais do que amar",
+        "Pode intimidar quem está começando"
+      ]
+    },
+    {
+      letter: "H",
+      name: "Servir",
+      refs: "Rm 12:7; Mc 10:45; Jo 13:14–15",
+      summary:
+        "Disposição em ajudar nos bastidores e nas necessidades práticas, fortalecendo o corpo com fidelidade.",
+      strengths: [
+        "Prontidão para fazer o necessário",
+        "Sustenta o ministério “por trás”",
+        "Exemplo de humildade e constância"
+      ],
+      cautions: [
+        "Risco de dizer sim pra tudo e se esgotar",
+        "Pode sentir que seu trabalho não é visto",
+        "Pode evitar liderança por medo de exposição"
+      ]
+    },
+    {
+      letter: "I",
+      name: "Fé",
+      refs: "1Co 12:9; Hb 11:1; Mc 11:22–24",
+      summary:
+        "Confiança firme em Deus para avançar em situações difíceis, inspirando outros a crerem e perseverarem.",
+      strengths: [
+        "Coragem para dar passos grandes",
+        "Mantém paz e esperança em crise",
+        "Encoraja outros a confiarem em Deus"
+      ],
+      cautions: [
+        "Pode desconsiderar limites e processos",
+        "Risco de soar ‘simplista’ com dores profundas",
+        "Pode confundir fé com impulsividade"
+      ]
+    }
+  ];
+
+  giftsExplained.forEach((g) => {
+  const details = document.createElement("details");
+  details.className = "accordion-item";
+
+  const summary = document.createElement("summary");
+  summary.className = "accordion-summary";
+
+  const titleWrap = document.createElement("div");
+  titleWrap.className = "accordion-title";
+
+  const name = document.createElement("div");
+  name.className = "accordion-name";
+  name.textContent = `${g.name}`;
+
+  const refs = document.createElement("div");
+  refs.className = "accordion-refs";
+  refs.textContent = g.refs;
+
+  titleWrap.appendChild(name);
+  titleWrap.appendChild(refs);
+
+  const arrow = document.createElement("div");
+  arrow.className = "accordion-arrow";
+  arrow.textContent = "⌄";
+
+  summary.appendChild(titleWrap);
+  summary.appendChild(arrow);
+
+  const body = document.createElement("div");
+  body.className = "accordion-body";
+
+  const sum = document.createElement("div");
+  sum.className = "question-text";
+  sum.textContent = g.summary;
+
+  const strongTitle = document.createElement("div");
+  strongTitle.className = "accordion-subtitle";
+  strongTitle.textContent = "Pontos fortes:";
+
+  const strongList = document.createElement("ul");
+  strongList.style.margin = "6px 0 0 18px";
+  strongList.style.padding = "0";
+  g.strengths.forEach((s) => {
+    const li = document.createElement("li");
+    li.textContent = s;
+    strongList.appendChild(li);
+  });
+
+  const cautionTitle = document.createElement("div");
+  cautionTitle.className = "accordion-subtitle";
+  cautionTitle.textContent = "Pontos de atenção:";
+
+  const cautionList = document.createElement("ul");
+  cautionList.style.margin = "6px 0 0 18px";
+  cautionList.style.padding = "0";
+  g.cautions.forEach((c) => {
+    const li = document.createElement("li");
+    li.textContent = c;
+    cautionList.appendChild(li);
+  });
+
+  body.appendChild(sum);
+  body.appendChild(strongTitle);
+  body.appendChild(strongList);
+  body.appendChild(cautionTitle);
+  body.appendChild(cautionList);
+
+  details.appendChild(summary);
+  details.appendChild(body);
+
+  details.addEventListener("toggle", () => {
+  if (!details.open) return;
+  contentBox.querySelectorAll("details.accordion-item").forEach((d) => {
+    if (d !== details) d.open = false;
+  });
+});
+  contentBox.appendChild(details);
+});
+
+
+
+  container.appendChild(contentBox);
+
+  // ===== BOTÕES =====
+  const buttons = document.createElement("div");
+  buttons.className = "buttons-row";
+
+  const backButton = document.createElement("button");
+  backButton.className = "secondary";
+  backButton.textContent = "Voltar";
+  backButton.onclick = () => {
+    currentStep = -1;
+    render();
+  };
+
+  
+  buttons.appendChild(backButton);
+  container.appendChild(buttons);
+
+  appRoot.appendChild(container);
+}
+
 
   function renderIntroScreen() {
     const container = document.createElement("div");
@@ -780,6 +1199,30 @@ function toBase64(str) {
     small.textContent =
       "Você verá 12 blocos de afirmações (cada bloco com 9 frases). Em cada bloco, escolha até 3 frases e arraste as fichas de pontuação (3, 2 e 1) para elas.";
     container.appendChild(small);
+
+    // ===== CTA: explicação dos dons (antes dos dados) =====
+    const ctaText = document.createElement("p");
+    ctaText.className = "small";
+    ctaText.style.marginTop = "10px";
+    ctaText.textContent =
+    "Se você quiser entender melhor os dons em si, veja um pequeno resumo clicando no botão abaixo:";
+    container.appendChild(ctaText);
+
+    const ctaButton = document.createElement("button");
+    ctaButton.className = "outline-primary";
+    ctaButton.style.width = "100%";
+    ctaButton.textContent = "Ver explicação dos dons";
+    ctaButton.onclick = () => {
+      currentStep = -2;
+      render();
+    };
+    container.appendChild(ctaButton);
+
+    // um respiro visual antes de começar os campos
+    const spacer = document.createElement("div");
+    spacer.style.height = "12px";
+    container.appendChild(spacer);
+
 
     const nameField = document.createElement("div");
     nameField.className = "field";
@@ -884,6 +1327,7 @@ function toBase64(str) {
     };
    buttons.appendChild(viewResultButton);
   }
+
     const startButton = document.createElement("button");
     startButton.className = "primary";
     startButton.textContent = "Começar";
